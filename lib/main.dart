@@ -1,79 +1,70 @@
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-       
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      title: 'Retrieve Text Input',
+      home: MyCustomForm(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
- 
-
-  final String title;
+class MyCustomForm extends StatefulWidget {
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+ _MyCustomFormState createState() => _MyCustomFormState();
+  
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _MyCustomFormState extends State<MyCustomForm> {
+  //TextField의 현잿값을 얻는 데 필요
+  final myController = TextEditingController();
 
-  void _incrementCounter() {
-    setState(() {
-    
-      _counter++;
-    });
+  @override
+  void initState(){
+    super.initState();
+
+    //addListener로 상태를 모니터링할 수 있음
+    myController.addListener(_printLatestValue);
   }
 
   @override
-  Widget build(BuildContext context) {
-   
+  void dispose(){
+    //화면이 종료될 때는 반드시 위젯 트리에서 컨트롤러를 해제해야 함
+    myController.dispose();
+    super.dispose();
+  }
+
+  _printLatestValue(){
+    //컨트롤러의 text 프로퍼티로 연결된 TextField에 입력된 값을 얻음
+    print("두 번째 text field: ${myController.text}");
+  }
+
+  @override
+  Widget build(BuildContext context){
     return Scaffold(
       appBar: AppBar(
-       
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      
-        title: Text(widget.title),
+        title: Text('Text Input 연습'),
       ),
-      body: Center(
-      
-        child: Column(
-         
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
+      body: Padding(padding: const EdgeInsets.all(16.0),
+      child: Column(
+children: <Widget>[
+  TextField(
+    onChanged: (text) { //텍스트 변경 감지 이벤트
+      print("첫 번째 text field: $text");
+    },
+  ),
+  TextField(
+    controller: myController, //컨트롤러 지정
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), 
+      ],
+      ),
+      ),
     );
   }
 }
