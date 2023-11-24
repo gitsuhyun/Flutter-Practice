@@ -8,60 +8,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: '스텝1: 기본 코드 작성',
-      home: Scaffold(
-        appBar: AppBar(title: Text('폼 검증 데모'),
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
       ),
-      body: MyCustomForm(),
-      ),
-    );
-  }
-}
-
-class MyCustomForm extends StatefulWidget {
-
-  @override
- MyCustomFormState createState() {
-  return MyCustomFormState();
- }
-}
-
-class MyCustomFormState extends State<MyCustomForm> {
-  //form 위젯에 유니크한 키값을 부여하고 검증시 사용
-  final _formKey = GlobalKey<FormState>();
-
-  @override
-  Widget build(BuildContext context){
-    //form 위젯에 _formKey를 지정
-    return Form(
-      key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-        TextFormField(
-          validator: (value) {
-            if (value!.isEmpty){
-              return '글자를 입력하세요';
-            }
-            return null;
-          },
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16.0),
-          child: ElevatedButton(
-            onPressed: (){
-              //폼을 검증하여 통과하면 true, 실패하면 false 리턴
-              if(_formKey.currentState!.validate()) {
-                //검증이 통과하면 스낵바 표시
-                ScaffoldMessenger.of(context)
-                .showSnackBar(SnackBar(content: Text('검증 완료')));
-              }
-            },
-            child: Text('검증'),
-          ),
-          ),
-        ],
-        ), 
+      home: BmiMain(),
     );
   }
 }
@@ -74,8 +25,15 @@ class BmiMain extends StatefulWidget {
 }
 
 class _BmiMainState extends State<BmiMain> {
-  final _formKey = GlobalKey<FormState>(); //폼의 상태를 얻기 위한 키
+  final _formKey = GlobalKey<FormState>();
+  final _heightController = TextEditingController();
+  final _weightController = TextEditingController();
 
+  void dispose(){
+    _heightController.dispose();
+    _weightController.dispose();
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context){
     return Scaffold(
@@ -90,7 +48,14 @@ class _BmiMainState extends State<BmiMain> {
               border: OutlineInputBorder(),
               hintText: '키',
             ),
-          keyboardType: TextInputType.number,
+            controller: _heightController,
+            keyboardType: TextInputType.number,
+            validator: (value){
+              if(value!.trim().isEmpty){
+                return '키를 입력하세요';
+              }
+              return null;
+            },
           ),
           SizedBox(
             height: 16.0,
@@ -100,7 +65,14 @@ class _BmiMainState extends State<BmiMain> {
               border: OutlineInputBorder(),
               hintText: '몸무게',
             ),
+            controller: _weightController,
             keyboardType: TextInputType.number,
+            validator: (value){
+              if(value!.trim().isEmpty){
+                return '몸무게를 입력하세요';
+              }
+              return null;
+            },
           ),
           Container(
             margin: const EdgeInsets.only(top: 16.0),
@@ -108,7 +80,12 @@ class _BmiMainState extends State<BmiMain> {
             child:ElevatedButton(
               onPressed: (){
                 if(_formKey.currentState!.validate()){
-
+                  Navigator.push(
+                    context, 
+                    MaterialPageRoute(builder: (context) => BmiResult(
+                      double.parse(_heightController.text.trim()), 
+                      double.parse(_weightController.text.trim()))),
+                      );
                 }
               },
               child: Text('결과'),
@@ -131,33 +108,63 @@ class BmiResult extends StatelessWidget {
 
  @override
  Widget build(BuildContext context){
+  final bmi = weight / ((height / 100) * (height / 100));
+  print('bmi : $bmi');
+
 return Scaffold(
 appBar: AppBar(title: Text('비만도 계산기')),
 body: Center(child: Column(
   mainAxisAlignment: MainAxisAlignment.center,
   children: <Widget>[
-Text( //TODO : 수정할 부분(글자)
-'정상',
-style: TextStyle(fontSize: 36),
-
+Text(
+  _calcBmi(bmi),
+  style: TextStyle(fontSize: 36),
 ),
 SizedBox(
   height: 16,
-
 ),
-Icon( //TODO : 수정할 부분(아이콘)
-  
-  Icons.sentiment_satisfied,
-color: Colors.green,
-size: 100,
-  ),
-
+  _buildIcon(bmi),
   ],
   ),
   ),
-
   );
-
 }
 
+ String _calcBmi(double bmi) {
+    var result = '저체중';
+    if (bmi >= 35) {
+      result = '고도 비만';
+    } else if (bmi >= 30) {
+      result = '2단계 비만';
+    } else if (bmi >= 25) {
+      result = '1단계 비만';
+    } else if (bmi >= 23) {
+      result = '과체중';
+    } else if (bmi >= 18.5) {
+      result = '정상';
+    }
+    return result;
+  }
+
+  Widget _buildIcon(double bmi) {
+    if (bmi >= 23) {
+      return Icon(
+        Icons.sentiment_very_dissatisfied,
+        color: Colors.red,
+        size: 100,
+      );
+    } else if (bmi >= 18.5) {
+      return Icon(
+        Icons.sentiment_satisfied,
+        color: Colors.green,
+        size: 100,
+      );
+    } else {
+      return Icon(
+        Icons.sentiment_dissatisfied,
+        color: Colors.orange,
+        size: 100,
+      );
+    }
+  }
 }
